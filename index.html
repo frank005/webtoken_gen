@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agora Token Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Agora Token Generator</h1>
+            <p>Generate tokens for Agora services client-side (no server required)</p>
+        </header>
+
+        <div class="token-type-selector">
+            <button class="tab-btn active" data-token-type="rtc">RTC Token</button>
+            <button class="tab-btn" data-token-type="rtm">RTM Token</button>
+            <button class="tab-btn" data-token-type="rtc-rtm">RTC + RTM Token</button>
+            <button class="tab-btn" data-token-type="chat">Chat Token</button>
+            <button class="tab-btn" data-token-type="education">Education Token</button>
+            <button class="tab-btn" data-token-type="fpa">FPA Token</button>
+            <button class="tab-btn" data-token-type="apaas">APAAS Token</button>
+        </div>
+
+        <!-- RTC Token Form -->
+        <div class="token-form active" id="rtc-form">
+            <h2>RTC Token Builder</h2>
+            <form id="rtc-token-form">
+                <div class="form-group">
+                    <label for="rtc-app-id">App ID:</label>
+                    <input type="text" id="rtc-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-app-certificate">App Certificate:</label>
+                    <input type="text" id="rtc-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-channel-name">Channel Name:</label>
+                    <input type="text" id="rtc-channel-name" name="channel-name" autocomplete="organization" required placeholder="Channel name">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-uid">User ID (UID):</label>
+                    <input type="number" id="rtc-uid" name="uid" autocomplete="off" placeholder="Leave empty for user account">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-user-account">User Account:</label>
+                    <input type="text" id="rtc-user-account" name="user-account" autocomplete="username" placeholder="Leave empty if using UID">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-role">Role:</label>
+                    <select id="rtc-role">
+                        <option value="1">PUBLISHER</option>
+                        <option value="2">SUBSCRIBER</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rtc-token-expire">Token Expiration (seconds):</label>
+                    <input type="number" id="rtc-token-expire" name="token-expire" autocomplete="off" value="3600" required>
+                </div>
+                <div class="form-group">
+                    <label for="rtc-privilege-expire">Privilege Expiration (seconds):</label>
+                    <input type="number" id="rtc-privilege-expire" name="privilege-expire" autocomplete="off" value="3600" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="rtc-use-privileges"> Use Individual Privileges
+                    </label>
+                </div>
+                <div id="rtc-privileges" style="display: none;">
+                    <div class="form-group">
+                        <label for="rtc-join-expire">Join Channel Expiration:</label>
+                        <input type="number" id="rtc-join-expire" name="join-expire" autocomplete="off" value="3600">
+                    </div>
+                    <div class="form-group">
+                        <label for="rtc-audio-expire">Publish Audio Expiration:</label>
+                        <input type="number" id="rtc-audio-expire" name="audio-expire" autocomplete="off" value="3600">
+                    </div>
+                    <div class="form-group">
+                        <label for="rtc-video-expire">Publish Video Expiration:</label>
+                        <input type="number" id="rtc-video-expire" name="video-expire" autocomplete="off" value="3600">
+                    </div>
+                    <div class="form-group">
+                        <label for="rtc-data-expire">Publish Data Stream Expiration:</label>
+                        <input type="number" id="rtc-data-expire" name="data-expire" autocomplete="off" value="3600">
+                    </div>
+                </div>
+                <button type="submit">Generate RTC Token</button>
+            </form>
+        </div>
+
+        <!-- RTM Token Form -->
+        <div class="token-form" id="rtm-form">
+            <h2>RTM Token Builder</h2>
+            <form id="rtm-token-form">
+                <div class="form-group">
+                    <label for="rtm-app-id">App ID:</label>
+                    <input type="text" id="rtm-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="rtm-app-certificate">App Certificate:</label>
+                    <input type="text" id="rtm-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="rtm-user-id">User ID:</label>
+                    <input type="text" id="rtm-user-id" name="user-id" autocomplete="username" required placeholder="User ID (max 64 bytes)">
+                </div>
+                <div class="form-group">
+                    <label for="rtm-expire">Expiration (seconds):</label>
+                    <input type="number" id="rtm-expire" name="expire" autocomplete="off" value="3600" required>
+                </div>
+                <button type="submit">Generate RTM Token</button>
+            </form>
+        </div>
+
+        <!-- RTC + RTM Token Form -->
+        <div class="token-form" id="rtc-rtm-form">
+            <h2>RTC + RTM Token Builder</h2>
+            <form id="rtc-rtm-token-form">
+                <div class="form-group">
+                    <label for="rtc-rtm-app-id">App ID:</label>
+                    <input type="text" id="rtc-rtm-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-app-certificate">App Certificate:</label>
+                    <input type="text" id="rtc-rtm-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-channel-name">Channel Name:</label>
+                    <input type="text" id="rtc-rtm-channel-name" name="channel-name" autocomplete="organization" required placeholder="Channel name">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-user-account">User Account:</label>
+                    <input type="text" id="rtc-rtm-user-account" name="user-account" autocomplete="username" required placeholder="User account (used for both RTC and RTM)">
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-role">Role:</label>
+                    <select id="rtc-rtm-role">
+                        <option value="1">PUBLISHER</option>
+                        <option value="2">SUBSCRIBER</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-token-expire">Token Expiration (seconds):</label>
+                    <input type="number" id="rtc-rtm-token-expire" name="token-expire" autocomplete="off" value="3600" required>
+                </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-privilege-expire">Privilege Expiration (seconds):</label>
+                    <input type="number" id="rtc-rtm-privilege-expire" name="privilege-expire" autocomplete="off" value="3600" required>
+                </div>
+                <button type="submit">Generate RTC + RTM Token</button>
+            </form>
+        </div>
+
+        <!-- Chat Token Form -->
+        <div class="token-form" id="chat-form">
+            <h2>Chat Token Builder</h2>
+            <form id="chat-token-form">
+                <div class="form-group">
+                    <label for="chat-app-id">App ID:</label>
+                    <input type="text" id="chat-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="chat-app-certificate">App Certificate:</label>
+                    <input type="text" id="chat-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="chat-token-type">Token Type:</label>
+                    <select id="chat-token-type">
+                        <option value="user">User Token</option>
+                        <option value="app">App Token</option>
+                    </select>
+                </div>
+                <div class="form-group" id="chat-user-uuid-group">
+                    <label for="chat-user-uuid">User UUID:</label>
+                    <input type="text" id="chat-user-uuid" name="user-uuid" autocomplete="off" placeholder="User UUID (required for user token)">
+                </div>
+                <div class="form-group">
+                    <label for="chat-expire">Expiration (seconds):</label>
+                    <input type="number" id="chat-expire" name="expire" autocomplete="off" value="3600" required>
+                </div>
+                <button type="submit">Generate Chat Token</button>
+            </form>
+        </div>
+
+        <!-- Education Token Form -->
+        <div class="token-form" id="education-form">
+            <h2>Education Token Builder</h2>
+            <form id="education-token-form">
+                <div class="form-group">
+                    <label for="edu-app-id">App ID:</label>
+                    <input type="text" id="edu-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="edu-app-certificate">App Certificate:</label>
+                    <input type="text" id="edu-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="edu-token-type">Token Type:</label>
+                    <select id="edu-token-type">
+                        <option value="room">Room User Token</option>
+                        <option value="user">User Token</option>
+                        <option value="app">App Token</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edu-room-uuid-group">
+                    <label for="edu-room-uuid">Room UUID:</label>
+                    <input type="text" id="edu-room-uuid" name="room-uuid" autocomplete="off" placeholder="Room UUID (required for room token)">
+                </div>
+                <div class="form-group" id="edu-user-uuid-group">
+                    <label for="edu-user-uuid">User UUID:</label>
+                    <input type="text" id="edu-user-uuid" name="user-uuid" autocomplete="off" placeholder="User UUID (required for room/user token)">
+                </div>
+                <div class="form-group" id="edu-role-group">
+                    <label for="edu-role">Role:</label>
+                    <input type="number" id="edu-role" name="role" autocomplete="off" placeholder="User role (required for room token)">
+                </div>
+                <div class="form-group">
+                    <label for="edu-expire">Expiration (seconds):</label>
+                    <input type="number" id="edu-expire" name="expire" autocomplete="off" value="3600" required>
+                </div>
+                <button type="submit">Generate Education Token</button>
+            </form>
+        </div>
+
+        <!-- FPA Token Form -->
+        <div class="token-form" id="fpa-form">
+            <h2>FPA Token Builder</h2>
+            <form id="fpa-token-form">
+                <div class="form-group">
+                    <label for="fpa-app-id">App ID:</label>
+                    <input type="text" id="fpa-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="fpa-app-certificate">App Certificate:</label>
+                    <input type="text" id="fpa-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <button type="submit">Generate FPA Token</button>
+            </form>
+        </div>
+
+        <!-- APAAS Token Form -->
+        <div class="token-form" id="apaas-form">
+            <h2>APAAS Token Builder</h2>
+            <form id="apaas-token-form">
+                <div class="form-group">
+                    <label for="apaas-app-id">App ID:</label>
+                    <input type="text" id="apaas-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="apaas-app-certificate">App Certificate:</label>
+                    <input type="text" id="apaas-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="apaas-token-type">Token Type:</label>
+                    <select id="apaas-token-type">
+                        <option value="room">Room User Token</option>
+                        <option value="user">User Token</option>
+                        <option value="app">App Token</option>
+                    </select>
+                </div>
+                <div class="form-group" id="apaas-room-uuid-group">
+                    <label for="apaas-room-uuid">Room UUID:</label>
+                    <input type="text" id="apaas-room-uuid" name="room-uuid" autocomplete="off" placeholder="Room UUID (required for room token)">
+                </div>
+                <div class="form-group" id="apaas-user-uuid-group">
+                    <label for="apaas-user-uuid">User UUID:</label>
+                    <input type="text" id="apaas-user-uuid" name="user-uuid" autocomplete="off" placeholder="User UUID (required for room/user token)">
+                </div>
+                <div class="form-group" id="apaas-role-group">
+                    <label for="apaas-role">Role:</label>
+                    <input type="number" id="apaas-role" name="role" autocomplete="off" placeholder="User role (required for room token)">
+                </div>
+                <div class="form-group">
+                    <label for="apaas-expire">Expiration (seconds):</label>
+                    <input type="number" id="apaas-expire" name="expire" autocomplete="off" value="3600" required>
+                </div>
+                <button type="submit">Generate APAAS Token</button>
+            </form>
+        </div>
+
+        <!-- Result Display -->
+        <div class="result-container" id="result-container" style="display: none;">
+            <h2>Generated Token</h2>
+            <div class="result-box">
+                <textarea id="token-result" readonly></textarea>
+                <button id="copy-token-btn">Copy Token</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="js/pako.min.js"></script>
+    
+    <!-- Agora Token Libraries -->
+    <script src="js/AccessToken2.js"></script>
+    <script src="js/RtcTokenBuilder2.js"></script>
+    <script src="js/RtmTokenBuilder2.js"></script>
+    <script src="js/ChatTokenBuilder.js"></script>
+    <script src="js/EducationTokenBuilder.js"></script>
+    <script src="js/FpaTokenBuilder.js"></script>
+    <script src="js/ApaasTokenBuilder.js"></script>
+    <script src="js/md5.min.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
+</body>
+</html>
