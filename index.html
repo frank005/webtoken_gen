@@ -7,10 +7,34 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <!-- Credentials Modal -->
+    <div id="credentials-modal" class="modal">
+        <div class="modal-content">
+            <h2>🔐 Enter Your Agora Credentials</h2>
+            <p>Please enter your Agora App ID and App Certificate to continue.</p>
+            <form id="credentials-form">
+                <div class="form-group">
+                    <label for="modal-app-id">App ID:</label>
+                    <input type="text" id="modal-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
+                </div>
+                <div class="form-group">
+                    <label for="modal-app-certificate">App Certificate:</label>
+                    <input type="text" id="modal-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
+                </div>
+                <button type="submit">Save Credentials</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container" id="main-container" style="display: none;">
         <header>
-            <h1>🔐 Agora Token Generator</h1>
-            <p>Generate tokens for Agora services client-side (no server required)</p>
+            <div class="header-content">
+                <div>
+                    <h1>🔐 Agora Token Generator</h1>
+                    <p>Generate tokens for Agora services client-side (no server required)</p>
+                </div>
+                <button id="change-credentials-btn" class="change-credentials-btn" title="Change App ID and Certificate">⚙️ Change Credentials</button>
+            </div>
         </header>
 
         <div class="token-type-selector">
@@ -27,14 +51,6 @@
         <div class="token-form active" id="rtc-form">
             <h2>RTC Token Builder</h2>
             <form id="rtc-token-form">
-                <div class="form-group">
-                    <label for="rtc-app-id">App ID:</label>
-                    <input type="text" id="rtc-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="rtc-app-certificate">App Certificate:</label>
-                    <input type="text" id="rtc-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <div class="form-group">
                     <label for="rtc-channel-name">Channel Name:</label>
                     <input type="text" id="rtc-channel-name" name="channel-name" autocomplete="organization" required placeholder="Channel name">
@@ -85,7 +101,10 @@
                         <input type="number" id="rtc-data-expire" name="data-expire" autocomplete="off" value="3600">
                     </div>
                 </div>
-                <button type="submit">Generate RTC Token</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1;">Generate RTC Token</button>
+                    <button type="button" id="rtc-quick-generate-btn" style="flex: 1;">⚡ Quick Generate (2 Tokens)</button>
+                </div>
             </form>
         </div>
 
@@ -94,14 +113,6 @@
             <h2>RTM Token Builder</h2>
             <form id="rtm-token-form">
                 <div class="form-group">
-                    <label for="rtm-app-id">App ID:</label>
-                    <input type="text" id="rtm-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="rtm-app-certificate">App Certificate:</label>
-                    <input type="text" id="rtm-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
-                <div class="form-group">
                     <label for="rtm-user-id">User ID:</label>
                     <input type="text" id="rtm-user-id" name="user-id" autocomplete="username" required placeholder="User ID (max 64 bytes)">
                 </div>
@@ -109,7 +120,10 @@
                     <label for="rtm-expire">Expiration (seconds):</label>
                     <input type="number" id="rtm-expire" name="expire" autocomplete="off" value="3600" required>
                 </div>
-                <button type="submit">Generate RTM Token</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1;">Generate RTM Token</button>
+                    <button type="button" id="rtm-quick-generate-btn" style="flex: 1;">⚡ Quick Generate (2 Tokens)</button>
+                </div>
             </form>
         </div>
 
@@ -117,14 +131,6 @@
         <div class="token-form" id="rtc-rtm-form">
             <h2>RTC + RTM Token Builder</h2>
             <form id="rtc-rtm-token-form">
-                <div class="form-group">
-                    <label for="rtc-rtm-app-id">App ID:</label>
-                    <input type="text" id="rtc-rtm-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="rtc-rtm-app-certificate">App Certificate:</label>
-                    <input type="text" id="rtc-rtm-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <div class="form-group">
                     <label for="rtc-rtm-channel-name">Channel Name:</label>
                     <input type="text" id="rtc-rtm-channel-name" name="channel-name" autocomplete="organization" required placeholder="Channel name">
@@ -148,7 +154,10 @@
                     <label for="rtc-rtm-privilege-expire">Privilege Expiration (seconds):</label>
                     <input type="number" id="rtc-rtm-privilege-expire" name="privilege-expire" autocomplete="off" value="3600" required>
                 </div>
-                <button type="submit">Generate RTC + RTM Token</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1;">Generate RTC + RTM Token</button>
+                    <button type="button" id="rtc-rtm-quick-generate-btn" style="flex: 1;">⚡ Quick Generate (2 Tokens)</button>
+                </div>
             </form>
         </div>
 
@@ -156,14 +165,6 @@
         <div class="token-form" id="chat-form">
             <h2>Chat Token Builder</h2>
             <form id="chat-token-form">
-                <div class="form-group">
-                    <label for="chat-app-id">App ID:</label>
-                    <input type="text" id="chat-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="chat-app-certificate">App Certificate:</label>
-                    <input type="text" id="chat-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <div class="form-group">
                     <label for="chat-token-type">Token Type:</label>
                     <select id="chat-token-type">
@@ -187,14 +188,6 @@
         <div class="token-form" id="education-form">
             <h2>Education Token Builder</h2>
             <form id="education-token-form">
-                <div class="form-group">
-                    <label for="edu-app-id">App ID:</label>
-                    <input type="text" id="edu-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="edu-app-certificate">App Certificate:</label>
-                    <input type="text" id="edu-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <div class="form-group">
                     <label for="edu-token-type">Token Type:</label>
                     <select id="edu-token-type">
@@ -227,14 +220,6 @@
         <div class="token-form" id="fpa-form">
             <h2>FPA Token Builder</h2>
             <form id="fpa-token-form">
-                <div class="form-group">
-                    <label for="fpa-app-id">App ID:</label>
-                    <input type="text" id="fpa-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="fpa-app-certificate">App Certificate:</label>
-                    <input type="text" id="fpa-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <button type="submit">Generate FPA Token</button>
             </form>
         </div>
@@ -243,14 +228,6 @@
         <div class="token-form" id="apaas-form">
             <h2>APAAS Token Builder</h2>
             <form id="apaas-token-form">
-                <div class="form-group">
-                    <label for="apaas-app-id">App ID:</label>
-                    <input type="text" id="apaas-app-id" name="app-id" autocomplete="username" required placeholder="Your Agora App ID">
-                </div>
-                <div class="form-group">
-                    <label for="apaas-app-certificate">App Certificate:</label>
-                    <input type="text" id="apaas-app-certificate" name="app-certificate" autocomplete="current-password" required placeholder="Your Agora App Certificate">
-                </div>
                 <div class="form-group">
                     <label for="apaas-token-type">Token Type:</label>
                     <select id="apaas-token-type">
@@ -281,10 +258,24 @@
 
         <!-- Result Display -->
         <div class="result-container" id="result-container" style="display: none;">
-            <h2>Generated Token</h2>
-            <div class="result-box">
+            <h2 id="result-title">Generated Token</h2>
+            <div class="result-box" id="result-box">
                 <textarea id="token-result" readonly></textarea>
                 <button id="copy-token-btn">Copy Token</button>
+            </div>
+            <div class="result-box-dual" id="result-box-dual" style="display: none;">
+                <div class="token-pair">
+                    <div class="token-item">
+                        <label>Token 1:</label>
+                        <textarea id="token-result-1" readonly></textarea>
+                        <button class="copy-token-btn" data-token="1">Copy Token 1</button>
+                    </div>
+                    <div class="token-item">
+                        <label>Token 2:</label>
+                        <textarea id="token-result-2" readonly></textarea>
+                        <button class="copy-token-btn" data-token="2">Copy Token 2</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
