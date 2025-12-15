@@ -86,15 +86,26 @@ document.addEventListener('DOMContentLoaded', function() {
     checkCredentials()
     
     // Tab switching
-    const tabButtons = document.querySelectorAll('.tab-btn')
+    const tabButtons = document.querySelectorAll('.tab-btn:not(.more-tokens-btn)')
     const tokenForms = document.querySelectorAll('.token-form')
+    const moreTokensBtn = document.getElementById('more-tokens-btn')
+    const moreTokensMenu = document.getElementById('more-tokens-menu')
+    const moreTokensDropdown = document.querySelector('.more-tokens-dropdown')
+    const dropdownItems = document.querySelectorAll('.dropdown-item')
     
+    // Handle main tab buttons (excluding the "More Tokens" button)
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const tokenType = btn.dataset.tokenType
+            if (!tokenType) return
+            
+            // Close dropdown if open
+            moreTokensDropdown.classList.remove('active')
+            moreTokensMenu.style.display = 'none'
             
             // Update active tab
             tabButtons.forEach(b => b.classList.remove('active'))
+            dropdownItems.forEach(item => item.classList.remove('active'))
             btn.classList.add('active')
             
             // Update active form
@@ -106,6 +117,54 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('result-box-dual').style.display = 'none'
             document.getElementById('result-box').style.display = 'flex'
         })
+    })
+    
+    // Handle "More Tokens" dropdown button
+    moreTokensBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const isActive = moreTokensDropdown.classList.contains('active')
+        
+        if (isActive) {
+            moreTokensDropdown.classList.remove('active')
+            moreTokensMenu.style.display = 'none'
+        } else {
+            moreTokensDropdown.classList.add('active')
+            moreTokensMenu.style.display = 'block'
+        }
+    })
+    
+    // Handle dropdown items
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tokenType = item.dataset.tokenType
+            if (!tokenType) return
+            
+            // Close dropdown
+            moreTokensDropdown.classList.remove('active')
+            moreTokensMenu.style.display = 'none'
+            
+            // Update active tab
+            tabButtons.forEach(b => b.classList.remove('active'))
+            dropdownItems.forEach(i => i.classList.remove('active'))
+            item.classList.add('active')
+            
+            // Update active form
+            tokenForms.forEach(f => f.classList.remove('active'))
+            document.getElementById(`${tokenType}-form`).classList.add('active')
+            
+            // Hide result and reset to single display
+            document.getElementById('result-container').style.display = 'none'
+            document.getElementById('result-box-dual').style.display = 'none'
+            document.getElementById('result-box').style.display = 'flex'
+        })
+    })
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!moreTokensDropdown.contains(e.target)) {
+            moreTokensDropdown.classList.remove('active')
+            moreTokensMenu.style.display = 'none'
+        }
     })
     
     // RTC Token Form
@@ -148,6 +207,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('chat-token-form').addEventListener('submit', async (e) => {
         e.preventDefault()
         await generateChatToken()
+    })
+    
+    // Chat Quick Generate Button
+    document.getElementById('chat-quick-generate-btn').addEventListener('click', async (e) => {
+        e.preventDefault()
+        await quickGenerateChatTokens()
     })
     
     // Education Token Form
@@ -194,9 +259,47 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show/hide fields based on token type
     document.getElementById('chat-token-type').addEventListener('change', (e) => {
-        document.getElementById('chat-user-uuid-group').style.display = 
-            e.target.value === 'user' ? 'block' : 'none'
+        const isUserToken = e.target.value === 'user'
+        document.getElementById('chat-user-uuid-group').style.display = isUserToken ? 'block' : 'none'
+        document.getElementById('chat-token-count-group').style.display = isUserToken ? 'block' : 'none'
+        document.getElementById('chat-quick-generate-btn').style.display = isUserToken ? 'block' : 'none'
+        updateChatQuickGenerateButtonText()
     })
+    
+    // Update quick generate button text based on token count
+    function updateChatQuickGenerateButtonText() {
+        const tokenCount = document.getElementById('chat-token-count').value
+        const btn = document.getElementById('chat-quick-generate-btn')
+        btn.textContent = `⚡ Quick Generate (${tokenCount} Tokens)`
+    }
+    
+    // Update button text when token count changes
+    document.getElementById('chat-token-count').addEventListener('change', updateChatQuickGenerateButtonText)
+    
+    // Initialize chat form visibility on load
+    const chatTokenType = document.getElementById('chat-token-type').value
+    if (chatTokenType === 'user') {
+        document.getElementById('chat-token-count-group').style.display = 'block'
+        document.getElementById('chat-quick-generate-btn').style.display = 'block'
+        updateChatQuickGenerateButtonText()
+    }
+    
+    // Update quick generate button text for RTC, RTM, and RTC+RTM
+    function updateQuickGenerateButtonText(formPrefix) {
+        const tokenCount = document.getElementById(`${formPrefix}-token-count`).value
+        const btn = document.getElementById(`${formPrefix}-quick-generate-btn`)
+        btn.textContent = `⚡ Quick Generate (${tokenCount} Tokens)`
+    }
+    
+    // Add event listeners for token count changes
+    document.getElementById('rtc-token-count').addEventListener('change', () => updateQuickGenerateButtonText('rtc'))
+    document.getElementById('rtm-token-count').addEventListener('change', () => updateQuickGenerateButtonText('rtm'))
+    document.getElementById('rtc-rtm-token-count').addEventListener('change', () => updateQuickGenerateButtonText('rtc-rtm'))
+    
+    // Initialize button text on load
+    updateQuickGenerateButtonText('rtc')
+    updateQuickGenerateButtonText('rtm')
+    updateQuickGenerateButtonText('rtc-rtm')
     
     document.getElementById('edu-token-type').addEventListener('change', (e) => {
         const type = e.target.value
@@ -467,6 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return
             }
             
+            const tokenCount = parseInt(document.getElementById('rtc-token-count').value)
             const uid = document.getElementById('rtc-uid').value.trim()
             const userAccount = document.getElementById('rtc-user-account').value.trim()
             const role = parseInt(document.getElementById('rtc-role').value)
@@ -474,73 +578,68 @@ document.addEventListener('DOMContentLoaded', function() {
             const privilegeExpire = parseInt(document.getElementById('rtc-privilege-expire').value)
             const usePrivileges = document.getElementById('rtc-use-privileges').checked
             
-            let token1, token2
-            let identifier1, identifier2
+            const tokens = []
+            const identifiers = []
             
-            // Determine identifiers based on what's filled
+            // Determine base identifier
+            let baseIdentifier
+            let isNumeric = false
             if (uid && uid !== '') {
-                // Use UID and UID+1
-                identifier1 = parseInt(uid)
-                identifier2 = identifier1 + 1
+                baseIdentifier = parseInt(uid)
+                isNumeric = true
             } else if (userAccount && userAccount !== '') {
-                // Use name and name1
-                identifier1 = userAccount
-                identifier2 = userAccount + '1'
+                baseIdentifier = userAccount
             } else {
-                // Generate random UIDs
-                identifier1 = Math.floor(Math.random() * 1000000)
-                identifier2 = identifier1 + 1
+                baseIdentifier = Math.floor(Math.random() * 1000000)
+                isNumeric = true
             }
             
-            // Generate first token
+            // Generate identifiers
+            for (let i = 0; i < tokenCount; i++) {
+                if (isNumeric) {
+                    identifiers.push(baseIdentifier + i)
+                } else {
+                    identifiers.push(i === 0 ? baseIdentifier : baseIdentifier + i)
+                }
+            }
+            
+            // Generate tokens
             if (usePrivileges) {
                 const joinExpire = parseInt(document.getElementById('rtc-join-expire').value)
                 const audioExpire = parseInt(document.getElementById('rtc-audio-expire').value)
                 const videoExpire = parseInt(document.getElementById('rtc-video-expire').value)
                 const dataExpire = parseInt(document.getElementById('rtc-data-expire').value)
                 
-                if (typeof identifier1 === 'number') {
-                    token1 = await RtcTokenBuilder.buildTokenWithUidAndPrivilege(
-                        credentials.appId, credentials.appCertificate, channelName, identifier1,
-                        tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
-                    )
-                    token2 = await RtcTokenBuilder.buildTokenWithUidAndPrivilege(
-                        credentials.appId, credentials.appCertificate, channelName, identifier2,
-                        tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
-                    )
-                } else {
-                    token1 = await RtcTokenBuilder.BuildTokenWithUserAccountAndPrivilege(
-                        credentials.appId, credentials.appCertificate, channelName, identifier1,
-                        tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
-                    )
-                    token2 = await RtcTokenBuilder.BuildTokenWithUserAccountAndPrivilege(
-                        credentials.appId, credentials.appCertificate, channelName, identifier2,
-                        tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
-                    )
+                for (const identifier of identifiers) {
+                    if (isNumeric) {
+                        tokens.push(await RtcTokenBuilder.buildTokenWithUidAndPrivilege(
+                            credentials.appId, credentials.appCertificate, channelName, identifier,
+                            tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
+                        ))
+                    } else {
+                        tokens.push(await RtcTokenBuilder.BuildTokenWithUserAccountAndPrivilege(
+                            credentials.appId, credentials.appCertificate, channelName, identifier,
+                            tokenExpire, joinExpire, audioExpire, videoExpire, dataExpire
+                        ))
+                    }
                 }
             } else {
-                if (typeof identifier1 === 'number') {
-                    token1 = await RtcTokenBuilder.buildTokenWithUid(
-                        credentials.appId, credentials.appCertificate, channelName, identifier1,
-                        role, tokenExpire, privilegeExpire
-                    )
-                    token2 = await RtcTokenBuilder.buildTokenWithUid(
-                        credentials.appId, credentials.appCertificate, channelName, identifier2,
-                        role, tokenExpire, privilegeExpire
-                    )
-                } else {
-                    token1 = await RtcTokenBuilder.buildTokenWithUserAccount(
-                        credentials.appId, credentials.appCertificate, channelName, identifier1,
-                        role, tokenExpire, privilegeExpire
-                    )
-                    token2 = await RtcTokenBuilder.buildTokenWithUserAccount(
-                        credentials.appId, credentials.appCertificate, channelName, identifier2,
-                        role, tokenExpire, privilegeExpire
-                    )
+                for (const identifier of identifiers) {
+                    if (isNumeric) {
+                        tokens.push(await RtcTokenBuilder.buildTokenWithUid(
+                            credentials.appId, credentials.appCertificate, channelName, identifier,
+                            role, tokenExpire, privilegeExpire
+                        ))
+                    } else {
+                        tokens.push(await RtcTokenBuilder.buildTokenWithUserAccount(
+                            credentials.appId, credentials.appCertificate, channelName, identifier,
+                            role, tokenExpire, privilegeExpire
+                        ))
+                    }
                 }
             }
             
-            showDualResult(token1, token2, identifier1, identifier2)
+            showMultipleResults(tokens, identifiers)
         } catch (error) {
             alert('Error generating tokens: ' + error.message)
             console.error(error)
@@ -556,26 +655,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 return
             }
             
+            const tokenCount = parseInt(document.getElementById('rtm-token-count').value)
             const userId = document.getElementById('rtm-user-id').value.trim()
             const expire = parseInt(document.getElementById('rtm-expire').value)
             
-            let identifier1, identifier2
+            const tokens = []
+            const identifiers = []
             
-            // Determine identifiers based on what's filled
-            if (userId) {
-                // Use name and name1
-                identifier1 = userId
-                identifier2 = userId + '1'
-            } else {
-                // Generate random user IDs
-                identifier1 = 'name'
-                identifier2 = 'name1'
+            // Determine base identifier
+            const baseIdentifier = userId || 'name'
+            
+            // Generate identifiers
+            for (let i = 0; i < tokenCount; i++) {
+                identifiers.push(i === 0 ? baseIdentifier : baseIdentifier + i)
             }
             
-            const token1 = await RtmTokenBuilder.buildToken(credentials.appId, credentials.appCertificate, identifier1, expire)
-            const token2 = await RtmTokenBuilder.buildToken(credentials.appId, credentials.appCertificate, identifier2, expire)
+            // Generate tokens
+            for (const identifier of identifiers) {
+                tokens.push(await RtmTokenBuilder.buildToken(credentials.appId, credentials.appCertificate, identifier, expire))
+            }
             
-            showDualResult(token1, token2, identifier1, identifier2)
+            showMultipleResults(tokens, identifiers)
         } catch (error) {
             alert('Error generating tokens: ' + error.message)
             console.error(error)
@@ -597,34 +697,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 return
             }
             
+            const tokenCount = parseInt(document.getElementById('rtc-rtm-token-count').value)
             const userAccount = document.getElementById('rtc-rtm-user-account').value.trim()
             const role = parseInt(document.getElementById('rtc-rtm-role').value)
             const tokenExpire = parseInt(document.getElementById('rtc-rtm-token-expire').value)
             const privilegeExpire = parseInt(document.getElementById('rtc-rtm-privilege-expire').value)
             
-            let identifier1, identifier2
+            const tokens = []
+            const identifiers = []
             
-            // Determine identifiers based on what's filled
-            if (userAccount) {
-                // Use name and name1
-                identifier1 = userAccount
-                identifier2 = userAccount + '1'
-            } else {
-                // Generate default names
-                identifier1 = 'name'
-                identifier2 = 'name1'
+            // Determine base identifier
+            const baseIdentifier = userAccount || 'name'
+            
+            // Generate identifiers
+            for (let i = 0; i < tokenCount; i++) {
+                identifiers.push(i === 0 ? baseIdentifier : baseIdentifier + i)
             }
             
-            const token1 = await RtcTokenBuilder.buildTokenWithRtm(
-                credentials.appId, credentials.appCertificate, channelName, identifier1,
-                role, tokenExpire, privilegeExpire
-            )
-            const token2 = await RtcTokenBuilder.buildTokenWithRtm(
-                credentials.appId, credentials.appCertificate, channelName, identifier2,
-                role, tokenExpire, privilegeExpire
-            )
+            // Generate tokens
+            for (const identifier of identifiers) {
+                tokens.push(await RtcTokenBuilder.buildTokenWithRtm(
+                    credentials.appId, credentials.appCertificate, channelName, identifier,
+                    role, tokenExpire, privilegeExpire
+                ))
+            }
             
-            showDualResult(token1, token2, identifier1, identifier2)
+            showMultipleResults(tokens, identifiers)
         } catch (error) {
             alert('Error generating tokens: ' + error.message)
             console.error(error)
@@ -641,13 +739,87 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' })
     }
     
+    async function quickGenerateChatTokens() {
+        try {
+            const credentials = getCredentials()
+            if (!credentials.appId || !credentials.appCertificate) {
+                alert('Please set your App ID and App Certificate first')
+                showCredentialsModal()
+                return
+            }
+            
+            const tokenType = document.getElementById('chat-token-type').value
+            if (tokenType !== 'user') {
+                alert('Quick Generate is only available for User Tokens')
+                return
+            }
+            
+            const baseUserUuid = document.getElementById('chat-user-uuid').value.trim()
+            if (!baseUserUuid) {
+                alert('Please enter a User UUID')
+                return
+            }
+            
+            const tokenCount = parseInt(document.getElementById('chat-token-count').value)
+            const expire = parseInt(document.getElementById('chat-expire').value)
+            
+            const tokens = []
+            const identifiers = []
+            
+            // Generate tokens with base UUID and numbered suffixes
+            for (let i = 0; i < tokenCount; i++) {
+                const userUuid = i === 0 ? baseUserUuid : baseUserUuid + i
+                const token = await ChatTokenBuilder.buildUserToken(credentials.appId, credentials.appCertificate, userUuid, expire)
+                tokens.push(token)
+                identifiers.push(userUuid)
+            }
+            
+            showMultipleResults(tokens, identifiers)
+        } catch (error) {
+            alert('Error generating tokens: ' + error.message)
+            console.error(error)
+        }
+    }
+    
     function showDualResult(token1, token2, identifier1, identifier2) {
         // Hide single result, show dual result
         document.getElementById('result-box').style.display = 'none'
         document.getElementById('result-box-dual').style.display = 'block'
         document.getElementById('result-title').textContent = `Generated Tokens (ID: ${identifier1} & ${identifier2})`
-        document.getElementById('token-result-1').value = token1
-        document.getElementById('token-result-2').value = token2
+        
+        const container = document.getElementById('token-pair-container')
+        container.innerHTML = `
+            <div class="token-item">
+                <label>Token 1:</label>
+                <textarea id="token-result-1" readonly>${token1}</textarea>
+                <button class="copy-token-btn" data-token="1">Copy Token 1</button>
+            </div>
+            <div class="token-item">
+                <label>Token 2:</label>
+                <textarea id="token-result-2" readonly>${token2}</textarea>
+                <button class="copy-token-btn" data-token="2">Copy Token 2</button>
+            </div>
+        `
+        
+        document.getElementById('result-container').style.display = 'block'
+        document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' })
+    }
+    
+    function showMultipleResults(tokens, identifiers) {
+        // Hide single result, show multiple result
+        document.getElementById('result-box').style.display = 'none'
+        document.getElementById('result-box-dual').style.display = 'block'
+        document.getElementById('result-title').textContent = `Generated ${tokens.length} Tokens`
+        
+        const container = document.getElementById('token-pair-container')
+        container.innerHTML = tokens.map((token, index) => `
+            <div class="token-item">
+                <label>Token ${index + 1} (${identifiers[index]}):</label>
+                <textarea id="token-result-${index + 1}" readonly>${token}</textarea>
+                <button class="copy-token-btn" data-token="${index + 1}">Copy Token ${index + 1}</button>
+            </div>
+        `).join('')
+        
         document.getElementById('result-container').style.display = 'block'
         document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' })
     }

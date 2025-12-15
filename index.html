@@ -42,9 +42,16 @@
             <button class="tab-btn" data-token-type="rtm">RTM Token</button>
             <button class="tab-btn" data-token-type="rtc-rtm">RTC + RTM Token</button>
             <button class="tab-btn" data-token-type="chat">Chat Token</button>
-            <button class="tab-btn" data-token-type="education">Education Token</button>
-            <button class="tab-btn" data-token-type="fpa">FPA Token</button>
-            <button class="tab-btn" data-token-type="apaas">APAAS Token</button>
+            <div class="more-tokens-dropdown">
+                <button class="tab-btn more-tokens-btn" id="more-tokens-btn">
+                    More Tokens <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="dropdown-menu" id="more-tokens-menu" style="display: none;">
+                    <button class="dropdown-item" data-token-type="education">Education Token</button>
+                    <button class="dropdown-item" data-token-type="fpa">FPA Token</button>
+                    <button class="dropdown-item" data-token-type="apaas">APAAS Token</button>
+                </div>
+            </div>
         </div>
 
         <!-- RTC Token Form -->
@@ -96,10 +103,24 @@
                         <label for="rtc-video-expire">Publish Video Expiration:</label>
                         <input type="number" id="rtc-video-expire" name="video-expire" autocomplete="off" value="3600">
                     </div>
-                    <div class="form-group">
-                        <label for="rtc-data-expire">Publish Data Stream Expiration:</label>
-                        <input type="number" id="rtc-data-expire" name="data-expire" autocomplete="off" value="3600">
-                    </div>
+                <div class="form-group">
+                    <label for="rtc-data-expire">Publish Data Stream Expiration:</label>
+                    <input type="number" id="rtc-data-expire" name="data-expire" autocomplete="off" value="3600">
+                </div>
+                </div>
+                <div class="form-group">
+                    <label for="rtc-token-count">Number of Tokens (Quick Generate):</label>
+                    <select id="rtc-token-count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" style="flex: 1;">Generate RTC Token</button>
@@ -119,6 +140,20 @@
                 <div class="form-group">
                     <label for="rtm-expire">Expiration (seconds):</label>
                     <input type="number" id="rtm-expire" name="expire" autocomplete="off" value="3600" required>
+                </div>
+                <div class="form-group">
+                    <label for="rtm-token-count">Number of Tokens (Quick Generate):</label>
+                    <select id="rtm-token-count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" style="flex: 1;">Generate RTM Token</button>
@@ -154,6 +189,20 @@
                     <label for="rtc-rtm-privilege-expire">Privilege Expiration (seconds):</label>
                     <input type="number" id="rtc-rtm-privilege-expire" name="privilege-expire" autocomplete="off" value="3600" required>
                 </div>
+                <div class="form-group">
+                    <label for="rtc-rtm-token-count">Number of Tokens (Quick Generate):</label>
+                    <select id="rtc-rtm-token-count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" style="flex: 1;">Generate RTC + RTM Token</button>
                     <button type="button" id="rtc-rtm-quick-generate-btn" style="flex: 1;">⚡ Quick Generate (2 Tokens)</button>
@@ -180,7 +229,24 @@
                     <label for="chat-expire">Expiration (seconds):</label>
                     <input type="number" id="chat-expire" name="expire" autocomplete="off" value="3600" required>
                 </div>
-                <button type="submit">Generate Chat Token</button>
+                <div class="form-group" id="chat-token-count-group" style="display: none;">
+                    <label for="chat-token-count">Number of Tokens (Quick Generate):</label>
+                    <select id="chat-token-count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1;">Generate Chat Token</button>
+                    <button type="button" id="chat-quick-generate-btn" style="flex: 1; display: none;">⚡ Quick Generate</button>
+                </div>
             </form>
         </div>
 
@@ -264,17 +330,8 @@
                 <button id="copy-token-btn">Copy Token</button>
             </div>
             <div class="result-box-dual" id="result-box-dual" style="display: none;">
-                <div class="token-pair">
-                    <div class="token-item">
-                        <label>Token 1:</label>
-                        <textarea id="token-result-1" readonly></textarea>
-                        <button class="copy-token-btn" data-token="1">Copy Token 1</button>
-                    </div>
-                    <div class="token-item">
-                        <label>Token 2:</label>
-                        <textarea id="token-result-2" readonly></textarea>
-                        <button class="copy-token-btn" data-token="2">Copy Token 2</button>
-                    </div>
+                <div class="token-pair" id="token-pair-container">
+                    <!-- Tokens will be dynamically inserted here -->
                 </div>
             </div>
         </div>
