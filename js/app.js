@@ -3,25 +3,171 @@
 document.addEventListener('DOMContentLoaded', function() {
     // LocalStorage keys
     const STORAGE_KEYS = {
-        APP_ID: 'agora_app_id',
-        APP_CERTIFICATE: 'agora_app_certificate'
+        LEGACY_APP_ID: 'agora_app_id',
+        LEGACY_APP_CERTIFICATE: 'agora_app_certificate',
+        PROFILES: 'agora_credential_profiles_v1',
+        ACTIVE_PROFILE_ID: 'agora_active_profile_id_v1'
     }
     
-    // Get credentials from localStorage
+    function generateProfileId() {
+        return `profile_${Date.now()}_${Math.floor(Math.random() * 100000)}`
+    }
+    
+    function loadProfiles() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.PROFILES)
+            const parsed = raw ? JSON.parse(raw) : []
+            if (!Array.isArray(parsed)) return []
+            return parsed.filter(profile => (
+                profile &&
+                typeof profile.id === 'string' &&
+                typeof profile.name === 'string' &&
+                typeof profile.appId === 'string' &&
+                typeof profile.appCertificate === 'string'
+            ))
+        } catch (error) {
+            console.error('Failed to parse saved profiles:', error)
+            return []
+        }
+    }
+    
+    function saveProfiles(profiles) {
+        localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles))
+    }
+    
+    function getActiveProfileId() {
+        return localStorage.getItem(STORAGE_KEYS.ACTIVE_PROFILE_ID) || ''
+    }
+    
+    function setActiveProfileId(profileId) {
+        if (profileId) {
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, profileId)
+        } else {
+            localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROFILE_ID)
+        }
+    }
+    
+    function getActiveProfile() {
+        const profiles = loadProfiles()
+        if (profiles.length === 0) return null
+        
+        const activeProfileId = getActiveProfileId()
+        const selectedProfile = profiles.find(profile => profile.id === activeProfileId)
+        if (selectedProfile) return selectedProfile
+        
+        const fallback = profiles[0]
+        setActiveProfileId(fallback.id)
+        return fallback
+    }
+    
+    function findProfileByName(name) {
+        const normalizedName = name.trim().toLowerCase()
+        if (!normalizedName) return null
+        
+        const profiles = loadProfiles()
+        return profiles.find(profile => profile.name.trim().toLowerCase() === normalizedName) || null
+    }
+    
+    function upsertProfile({ id, name, appId, appCertificate }) {
+        const profiles = loadProfiles()
+        const profileName = name.trim()
+        const nextProfile = {
+            id: id || generateProfileId(),
+            name: profileName,
+            appId: appId.trim(),
+            appCertificate: appCertificate.trim()
+        }
+        
+        const index = profiles.findIndex(profile => profile.id === nextProfile.id)
+        if (index >= 0) {
+            profiles[index] = nextProfile
+        } else {
+            profiles.push(nextProfile)
+        }
+        
+        saveProfiles(profiles)
+        return nextProfile
+    }
+    
+    function migrateLegacyCredentials() {
+        const profiles = loadProfiles()
+        if (profiles.length > 0) return
+        
+        const legacyAppId = localStorage.getItem(STORAGE_KEYS.LEGACY_APP_ID) || ''
+        const legacyAppCertificate = localStorage.getItem(STORAGE_KEYS.LEGACY_APP_CERTIFICATE) || ''
+        
+        if (!legacyAppId || !legacyAppCertificate) return
+        
+        const migratedProfile = {
+            id: generateProfileId(),
+            name: 'Default',
+            appId: legacyAppId.trim(),
+            appCertificate: legacyAppCertificate.trim()
+        }
+        
+        saveProfiles([migratedProfile])
+        setActiveProfileId(migratedProfile.id)
+    }
+    
+    function renderProfileSelectors() {
+        const profiles = loadProfiles()
+        const activeProfileId = getActiveProfileId()
+        const modalSelect = document.getElementById('modal-profile-select')
+        const activeSelect = document.getElementById('active-profile-select')
+        
+        modalSelect.innerHTML = '<option value="">Create New Profile</option>'
+        activeSelect.innerHTML = '<option value="">No profile</option>'
+        
+        profiles.forEach(profile => {
+            const modalOption = document.createElement('option')
+            modalOption.value = profile.id
+            modalOption.textContent = profile.name
+            modalSelect.appendChild(modalOption)
+            
+            const activeOption = document.createElement('option')
+            activeOption.value = profile.id
+            activeOption.textContent = profile.name
+            activeSelect.appendChild(activeOption)
+        })
+        
+        if (profiles.length > 0) {
+            const fallbackProfileId = activeProfileId && profiles.some(profile => profile.id === activeProfileId)
+                ? activeProfileId
+                : profiles[0].id
+            setActiveProfileId(fallbackProfileId)
+            activeSelect.value = fallbackProfileId
+            modalSelect.value = fallbackProfileId
+        } else {
+            setActiveProfileId('')
+        }
+    }
+    
+    function fillCredentialsForm(profile) {
+        const profileNameInput = document.getElementById('modal-profile-name')
+        const appIdInput = document.getElementById('modal-app-id')
+        const appCertificateInput = document.getElementById('modal-app-certificate')
+        
+        if (profile) {
+            profileNameInput.value = profile.name
+            appIdInput.value = profile.appId
+            appCertificateInput.value = profile.appCertificate
+        } else {
+            profileNameInput.value = ''
+            appIdInput.value = ''
+            appCertificateInput.value = ''
+        }
+    }
+    
+    // Get active credentials from localStorage
     function getCredentials() {
+        const profile = getActiveProfile()
+        if (!profile) {
+            return { appId: '', appCertificate: '' }
+        }
+        
         return {
-            appId: localStorage.getItem(STORAGE_KEYS.APP_ID) || '',
-            appCertificate: localStorage.getItem(STORAGE_KEYS.APP_CERTIFICATE) || ''
-        }
-    }
-    
-    // Save credentials to localStorage
-    function saveCredentials(appId, appCertificate) {
-        if (appId) {
-            localStorage.setItem(STORAGE_KEYS.APP_ID, appId.trim())
-        }
-        if (appCertificate) {
-            localStorage.setItem(STORAGE_KEYS.APP_CERTIFICATE, appCertificate.trim())
+            appId: profile.appId || '',
+            appCertificate: profile.appCertificate || ''
         }
     }
     
@@ -29,15 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function showCredentialsModal() {
         const modal = document.getElementById('credentials-modal')
         const mainContainer = document.getElementById('main-container')
-        const savedCredentials = getCredentials()
-        
-        // Pre-fill with saved credentials if they exist
-        if (savedCredentials.appId) {
-            document.getElementById('modal-app-id').value = savedCredentials.appId
-        }
-        if (savedCredentials.appCertificate) {
-            document.getElementById('modal-app-certificate').value = savedCredentials.appCertificate
-        }
+        renderProfileSelectors()
+        fillCredentialsForm(getActiveProfile())
         
         modal.classList.add('show')
         mainContainer.style.display = 'none'
@@ -54,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if credentials exist and show/hide accordingly
     function checkCredentials() {
+        renderProfileSelectors()
         const credentials = getCredentials()
         if (credentials.appId && credentials.appCertificate) {
             hideCredentialsModal()
@@ -65,16 +205,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle credentials form submission
     document.getElementById('credentials-form').addEventListener('submit', (e) => {
         e.preventDefault()
+        const selectedProfileId = document.getElementById('modal-profile-select').value
+        const profileName = document.getElementById('modal-profile-name').value.trim()
         const appId = document.getElementById('modal-app-id').value.trim()
         const appCertificate = document.getElementById('modal-app-certificate').value.trim()
         
-        if (!appId || !appCertificate) {
-            alert('Please enter both App ID and App Certificate')
+        if (!profileName || !appId || !appCertificate) {
+            alert('Please enter profile name, App ID, and App Certificate')
             return
         }
         
-        saveCredentials(appId, appCertificate)
+        let profileIdToSave = selectedProfileId
+        if (!profileIdToSave) {
+            const sameNameProfile = findProfileByName(profileName)
+            if (sameNameProfile) {
+                profileIdToSave = sameNameProfile.id
+            }
+        }
+        
+        const savedProfile = upsertProfile({
+            id: profileIdToSave,
+            name: profileName,
+            appId,
+            appCertificate
+        })
+        
+        setActiveProfileId(savedProfile.id)
+        renderProfileSelectors()
         hideCredentialsModal()
+    })
+    
+    document.getElementById('modal-profile-select').addEventListener('change', (e) => {
+        const selectedProfileId = e.target.value
+        if (!selectedProfileId) {
+            fillCredentialsForm(null)
+            return
+        }
+        
+        const profiles = loadProfiles()
+        const selectedProfile = profiles.find(profile => profile.id === selectedProfileId)
+        fillCredentialsForm(selectedProfile || null)
+    })
+    
+    document.getElementById('active-profile-select').addEventListener('change', (e) => {
+        const selectedProfileId = e.target.value
+        if (!selectedProfileId) return
+        
+        setActiveProfileId(selectedProfileId)
+        renderProfileSelectors()
     })
     
     // Handle change credentials button
@@ -83,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     
     // Check credentials on page load
+    migrateLegacyCredentials()
     checkCredentials()
     
     // Tab switching

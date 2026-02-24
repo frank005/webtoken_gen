@@ -42,6 +42,52 @@ header p {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+}
+
+.header-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 180px;
+}
+
+.profile-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.profile-picker label {
+    font-size: 0.85em;
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+.profile-picker select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 0.95em;
+}
+
+.profile-picker select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+.profile-picker select option {
+    color: #333;
 }
 
 .change-credentials-btn {
@@ -55,6 +101,7 @@ header p {
     cursor: pointer;
     transition: all 0.3s;
     white-space: nowrap;
+    width: 100%;
 }
 
 .change-credentials-btn:hover {
@@ -436,6 +483,20 @@ button[type="submit"]:active {
     header > div {
         flex-direction: column;
         gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profile-picker {
+        width: 100%;
+    }
+
+    .profile-picker select {
+        width: 100%;
     }
     
     .change-credentials-btn {
